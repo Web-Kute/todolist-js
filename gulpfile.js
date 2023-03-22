@@ -19,7 +19,7 @@ const compileSCSS = () => {
 };
 
 const minifyCSS = (cb) => {
-  src(join(path, "css", "assets/!(*.min).css"))
+  src(join(path, "assets/css", "!(*.min).css"))
     .pipe(cleanCSS({ compatibility: "ie8" }))
     .pipe(
       rename(({ dirname, basename, extname }) => ({
