@@ -5,7 +5,10 @@
  * @param { object } todo
  */
 
-export function Todolist() {}
+export function Todolist() {
+  this.fullName = null;
+  this.lastName = null;
+}
 
 Todolist.prototype.registerElements = function () {
   this.elements = {
@@ -15,7 +18,7 @@ Todolist.prototype.registerElements = function () {
     checkbox: document.querySelector(".item__checkbox"),
     inputField: document.querySelector(".todo-form__input"),
     todoItems: document.querySelector(".todo-items"),
-    item: document.querySelector(".item")
+    item: document.querySelector(".item"),
   };
 };
 
