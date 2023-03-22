@@ -1,4 +1,4 @@
-import { Todolist } from "./Game";
+import { Todolist } from "./Todolist";
 document.addEventListener("DOMContentLoaded", function () {
   "use-strict";
 

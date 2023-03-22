@@ -15,11 +15,11 @@ const compileSCSS = () => {
   return src(join(path, "scss", "*.scss"))
     .pipe(sass().on("error", sass.logError))
     .pipe(autoprefixer("last 2 versions", "> 1%", "Explorer 7", "Android 2"))
-    .pipe(dest(join(path, "css")));
+    .pipe(dest(join(path, "assets/css")));
 };
 
 const minifyCSS = (cb) => {
-  src(join(path, "css", "!(*.min).css"))
+  src(join(path, "css", "assets/!(*.min).css"))
     .pipe(cleanCSS({ compatibility: "ie8" }))
     .pipe(
       rename(({ dirname, basename, extname }) => ({
@@ -28,7 +28,7 @@ const minifyCSS = (cb) => {
         extname,
       }))
     )
-    .pipe(dest(join(path, "css")));
+    .pipe(dest(join(path, "assets/css")));
   cb();
 };
 
