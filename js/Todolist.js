@@ -1,3 +1,10 @@
+// @use JSDoc
+
+/**
+ * @description To do list
+ * @param { object } todo
+ */
+
 export function Todolist() {}
 
 Todolist.prototype.registerElements = function () {
