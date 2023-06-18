@@ -6,6 +6,7 @@
  */
 
 export function Todolist() {
+  this.registerElements();
   this.listTodo = [];
   this.taskExists = null;
   this.task = {
@@ -13,14 +14,13 @@ export function Todolist() {
     name: this.elements.inputTask.value,
     isDone: false,
   };
-  this.registerElements();
   this.addTask();
   this.renderTodo();
   this.delTasksDone();
   this.delAllTasks();
   this.done_notDone();
   this.searchList();
-  this.reset()
+  this.reset();
 }
 
 Todolist.prototype.reset = function () {
@@ -46,8 +46,8 @@ Todolist.prototype.renderTodo = function (id, name = "", done) {
   const input = document.createElement("input");
   const span = document.createElement("span");
   li.classList.add("item");
-  todoTasks.appendChild(li);
-  todoTasks.insertAdjacentElement("afterbegin", li);
+  this.elements.todoTasks.appendChild(li);
+  this.elements.todoTasks.insertAdjacentElement("afterbegin", li);
   li.appendChild(span);
   span.innerText = name;
   li.setAttribute("draggable", true);
@@ -68,10 +68,10 @@ Todolist.prototype.renderTodo = function (id, name = "", done) {
 };
 
 Todolist.prototype.addTask = function (e) {
-  e.preventDefault();
-  if (inputTask.value === "") {
-    error.innerHTML = "Please add some task!";
-    error.setAttribute("aria-label", "Please add some task!");
+  // e.preventDefault();
+  if (this.elements.inputTask.value === "") {
+    this.elements.error.innerHTML = "Please add some task!";
+    this.elements.error.setAttribute("aria-label", "Please add some task!");
     return;
   }
   // Check if task exists in list
@@ -99,7 +99,7 @@ Todolist.prototype.addTask = function (e) {
 };
 
 Todolist.prototype.delTasksDone = function (e) {
-  e.preventDefault();
+  // e.preventDefault();
   const listItem = document.querySelectorAll("li");
   const checkbox = document.querySelectorAll(".item__checkbox");
   checkbox.forEach((elem) => {
@@ -112,35 +112,41 @@ Todolist.prototype.delTasksDone = function (e) {
     if (item.classList.contains("active")) {
       let id = item.getAttribute("data-id");
       const isToDelete = (element) => element.id === Number(id);
-      const indexToDel = listTodo.findIndex(isToDelete);
-      listTodo.splice(indexToDel, 1);
-      localStorage.setItem("allTasks", JSON.stringify(listTodo));
+      const indexToDel = this.listTodo.findIndex(isToDelete);
+      this.listTodo.splice(indexToDel, 1);
+      localStorage.setItem("allTasks", JSON.stringify(this.listTodo));
 
       item.remove();
-      reset();
-      if (listTodo === null || listTodo.length === 0) {
-        reset();
-        error.innerHTML = "All tasks have been deleted!";
-        error.setAttribute("aria-label", "All tasks have been deleted!");
+      this.reset();
+      if (this.listTodo === null || this.listTodo.length === 0) {
+        this.reset();
+        this.elements.error.innerHTML = "All tasks have been deleted!";
+        this.elements.error.setAttribute(
+          "aria-label",
+          "All tasks have been deleted!"
+        );
       }
     }
   });
 };
 
 Todolist.prototype.delAllTasks = function (e) {
-  e.preventDefault();
-  if (listTodo !== null) {
-    listTodo = [];
-    localStorage.setItem("allTasks", JSON.stringify(listTodo));
-    todoTasks.innerHTML = "";
-    error.innerHTML = "All tasks have been deleted!";
-    error.setAttribute("aria-label", "All tasks have been deleted!");
+  // e.preventDefault();
+  if (this.listTodo !== null) {
+    this.listTodo = [];
+    localStorage.setItem("allTasks", JSON.stringify(this.listTodo));
+    this.elements.todoTasks.innerHTML = "";
+    this.elements.error.innerHTML = "All tasks have been deleted!";
+    this.elements.error.setAttribute(
+      "aria-label",
+      "All tasks have been deleted!"
+    );
   }
 };
 
 Todolist.prototype.done_notDone = function () {
   const checkbox = document.querySelectorAll(".item__checkbox");
-  listTodo = JSON.parse(localStorage.getItem("allTasks"));
+  this.listTodo = JSON.parse(localStorage.getItem("allTasks"));
   checkbox.forEach((elem) => {
     elem.addEventListener("change", (e) => {
       let idDone = Number(e.target.parentNode.getAttribute("data-id"));
@@ -162,8 +168,8 @@ Todolist.prototype.done_notDone = function () {
 };
 
 Todolist.prototype.searchList = function (e) {
-  e.preventDefault();
-  const li = Array.from(todoTasks.children);
+  // e.preventDefault();
+  const li = Array.from(this.elements.todoTasks.children);
   li.map((item) => {
     const isVisible = item.innerText
       .toLowerCase()
@@ -188,17 +194,11 @@ function debounced(delay, fn) {
 // const filterList = debounced(300, searchList);
 
 Todolist.prototype.events = function () {
-  this.elements.searchBar.addEventListener("input", this.filterList.bind(this));
-  this.elements.todoTasks.addEventListener("click", this.deleteTask.bind(this));
-  this.elements.delDoneBtn.addEventListener(
-    "click",
-    this.delTasksDone.bind(this)
-  );
-  this.elements.delAllBtn.addEventListener(
-    "click",
-    this.delAllTasks.bind(this)
-  );
-  this.elements.todoForm.addEventListener("submit", this.addTask.bind(this));
+  this.elements.searchBar.addEventListener("input", this.filterList);
+  this.elements.todoTasks.addEventListener("click", this.deleteTask);
+  this.elements.delDoneBtn.addEventListener("click", this.delTasksDone);
+  this.elements.delAllBtn.addEventListener("click", this.delAllTasks);
+  this.elements.todoForm.addEventListener("submit", this.addTask);
 };
 
 /*********************
