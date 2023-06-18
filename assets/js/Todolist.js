@@ -10,7 +10,7 @@ export function Todolist() {
   this.taskExists = null;
   this.task = {
     id: Date.now(),
-    name: inputTask.value,
+    name: this.elements.inputTask.value,
     isDone: false,
   };
 }
@@ -68,13 +68,15 @@ Todolist.prototype.addTask = function (e) {
   }
   // Check if task exists in list
   if (listTodo) {
-    taskExists = listTodo.filter((task) => task.name === inputTask.value);
+    taskExists = listTodo.filter(
+      (task) => task.name === this.elements.inputTask.value
+    );
   }
 
   if (taskExists !== undefined && taskExists.length > 0) {
     error.innerHTML = `<span>${inputTask.value}</span> task already exists!`;
     error.setAttribute("aria-label", `${inputTask.value} task already exists!`);
-    inputTask.value = "";
+    this.elements.inputTask.value = "";
     return;
   } else {
     const isEmpty = listTodo !== null ? listTodo.push(task) : null;
@@ -175,7 +177,7 @@ function debounced(delay, fn) {
     }, delay);
   };
 }
-const filterList = debounced(300, searchList);
+// const filterList = debounced(300, searchList);
 
 Todolist.prototype.events = function () {
   this.elements.searchBar.addEventListener("input", this.filterList.bind(this));
