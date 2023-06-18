@@ -13,11 +13,19 @@ export function Todolist() {
     name: this.elements.inputTask.value,
     isDone: false,
   };
+  this.registerElements();
+  this.addTask();
+  this.renderTodo();
+  this.delTasksDone();
+  this.delAllTasks();
+  this.done_notDone();
+  this.searchList();
+  this.reset()
 }
 
 Todolist.prototype.reset = function () {
-  error.innerHTML = "";
-  inputTask.value = "";
+  this.elements.error.innerHTML = "";
+  this.elements.inputTask.value = "";
 };
 
 Todolist.prototype.registerElements = function () {
