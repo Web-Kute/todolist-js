@@ -2,227 +2,195 @@
 
 /**
  * @description To do list
- * @param { object } todo
+ * @param { object } listTodo
  */
 
 export function Todolist() {
-  let todos = [];
+  this.listTodo = [];
+  this.taskExists = null;
+  this.task = {
+    id: Date.now(),
+    name: inputTask.value,
+    isDone: false,
+  };
 }
 
-Todolist.prototype.registerElements = function () {
-
-
-  this.elements = {
-    todoForm: document.querySelector(".todo-form"),
-    addBtn: document.querySelector(".todo-form__add-button"),
-    deleteBtn: document.querySelector(".item__delete-button"),
-    checkbox: document.querySelector(".item__checkbox"),
-    inputField: document.querySelector(".todo-form__input"),
-    todoItems: document.querySelector(".todo-items"),
-    item: document.querySelector(".item")
-  };
-
-  
+Todolist.prototype.reset = function () {
+  error.innerHTML = "";
+  inputTask.value = "";
 };
 
-Todolist.prototype.addTask = function (item) {};
+Todolist.prototype.registerElements = function () {
+  this.elements = {
+    todoForm: document.querySelector(".todo-form"),
+    inputTask: document.querySelector(".todo-form__add"),
+    addBtn: document.querySelector(".todo-form__add-btn"),
+    delDoneBtn: document.querySelector(".todo-form__done-btn"),
+    delAllBtn: document.querySelector(".todo-form__del-btn"),
+    todoTasks: document.querySelector(".todo-tasks"),
+    error: document.querySelector(".error"),
+    searchBar: document.getElementById("search"),
+  };
+};
 
-Todolist.prototype.deleteTask = function () {};
+Todolist.prototype.renderTodo = function (id, name = "", done) {
+  const li = document.createElement("li");
+  const input = document.createElement("input");
+  const span = document.createElement("span");
+  li.classList.add("item");
+  todoTasks.appendChild(li);
+  todoTasks.insertAdjacentElement("afterbegin", li);
+  li.appendChild(span);
+  span.innerText = name;
+  li.setAttribute("draggable", true);
 
-Todolist.prototype.renderTodos = function () {};
+  input.classList.add("item__checkbox");
+  input.type = "checkbox";
+  li.appendChild(input);
+  li.insertAdjacentElement("afterbegin", input);
+  const addcheckbox = document.querySelector(".item__checkbox");
 
-Todolist.prototype.events = function () {};
+  li.setAttribute("data-id", id);
+  const delBtn = document.createElement("i");
+  delBtn.classList.add("fa", "fa-trash-alt", "trash");
+  li.appendChild(delBtn);
+
+  input.toggleAttribute("checked", done);
+  addcheckbox.closest(".item").classList.toggle("active", done);
+};
+
+Todolist.prototype.addTask = function (e) {
+  e.preventDefault();
+  if (inputTask.value === "") {
+    error.innerHTML = "Please add some task!";
+    error.setAttribute("aria-label", "Please add some task!");
+    return;
+  }
+  // Check if task exists in list
+  if (listTodo) {
+    taskExists = listTodo.filter((task) => task.name === inputTask.value);
+  }
+
+  if (taskExists !== undefined && taskExists.length > 0) {
+    error.innerHTML = `<span>${inputTask.value}</span> task already exists!`;
+    error.setAttribute("aria-label", `${inputTask.value} task already exists!`);
+    inputTask.value = "";
+    return;
+  } else {
+    const isEmpty = listTodo !== null ? listTodo.push(task) : null;
+
+    localStorage.setItem("allTasks", JSON.stringify(listTodo));
+    listTodo = JSON.parse(localStorage.getItem("allTasks"));
+
+    reset();
+    renderTodo(task.id, task.name, task.isDone);
+    done_notDone();
+  }
+};
+
+Todolist.prototype.delTasksDone = function (e) {
+  e.preventDefault();
+  const listItem = document.querySelectorAll("li");
+  const checkbox = document.querySelectorAll(".item__checkbox");
+  checkbox.forEach((elem) => {
+    const isChecked = !elem.checked
+      ? (error.innerHTML = "PLease select a task!") &&
+        error.setAttribute("aria-label", "PLease select a task!")
+      : null;
+  });
+  listItem.forEach((item) => {
+    if (item.classList.contains("active")) {
+      let id = item.getAttribute("data-id");
+      const isToDelete = (element) => element.id === Number(id);
+      const indexToDel = listTodo.findIndex(isToDelete);
+      listTodo.splice(indexToDel, 1);
+      localStorage.setItem("allTasks", JSON.stringify(listTodo));
+
+      item.remove();
+      reset();
+      if (listTodo === null || listTodo.length === 0) {
+        reset();
+        error.innerHTML = "All tasks have been deleted!";
+        error.setAttribute("aria-label", "All tasks have been deleted!");
+      }
+    }
+  });
+};
+
+Todolist.prototype.delAllTasks = function (e) {
+  e.preventDefault();
+  if (listTodo !== null) {
+    listTodo = [];
+    localStorage.setItem("allTasks", JSON.stringify(listTodo));
+    todoTasks.innerHTML = "";
+    error.innerHTML = "All tasks have been deleted!";
+    error.setAttribute("aria-label", "All tasks have been deleted!");
+  }
+};
+
+Todolist.prototype.done_notDone = function () {
+  const checkbox = document.querySelectorAll(".item__checkbox");
+  listTodo = JSON.parse(localStorage.getItem("allTasks"));
+  checkbox.forEach((elem) => {
+    elem.addEventListener("change", (e) => {
+      let idDone = Number(e.target.parentNode.getAttribute("data-id"));
+      let taskIdDone = document.querySelector("[data-id='" + idDone + "']");
+
+      let indexChecked = listTodo.findIndex(
+        (indexTask) => indexTask.id === idDone
+      );
+
+      listTodo[indexChecked].isDone = !listTodo[indexChecked].isDone;
+      localStorage.setItem("allTasks", JSON.stringify(listTodo));
+
+      taskIdDone.firstChild.toggleAttribute("checked");
+      taskIdDone.closest(".item").classList.toggle("active");
+      // on change event bubles that's why using stopImmediatePropagation
+      e.stopImmediatePropagation();
+    });
+  });
+};
+
+Todolist.prototype.searchList = function (e) {
+  e.preventDefault();
+  const li = Array.from(todoTasks.children);
+  li.map((item) => {
+    const isVisible = item.innerText
+      .toLowerCase()
+      .includes(searchBar.value.toLowerCase());
+    item.classList.toggle("hide", !isVisible);
+    reset();
+  });
+};
+
+function debounced(delay, fn) {
+  let timerId;
+  return function (...args) {
+    if (timerId) {
+      clearTimeout(timerId);
+    }
+    timerId = setTimeout(() => {
+      fn(...args);
+      timerId = null;
+    }, delay);
+  };
+}
+const filterList = debounced(300, searchList);
+
+Todolist.prototype.events = function () {
+  this.elements.searchBar.addEventListener("input", this.filterList.bind(this));
+  this.elements.todoTasks.addEventListener("click", this.deleteTask.bind(this));
+  this.elements.delDoneBtn.addEventListener(
+    "click",
+    this.delTasksDone.bind(this)
+  );
+  this.elements.delAllBtn.addEventListener(
+    "click",
+    this.delAllTasks.bind(this)
+  );
+  this.elements.todoForm.addEventListener("submit", this.addTask.bind(this));
+};
 
 /*********************
- * 
+ *
  */
-const todoForm = document.querySelector(".todo-form");
-const addBtn = document.querySelector(".todo-form__add-button");
-const deleteBtn = document.querySelectorAll(".item__delete-button");
-const checkbox = document.querySelector(".item__checkbox");
-
-const item = document.querySelector(".item");
-const alertUser = document.querySelector(".alert");
-
-const inputTask = document.querySelector(".todo-form__input");
-const todoTasks = document.querySelector(".todo-tasks");
-
-let todoTasksList = [];
-
-class TodoList {
-  constructor(item) {
-    this.ulElement = item;
-  }
-
-  add() {
-    let taskValue = document.querySelector(".todo-form__input").value;
-    if (taskValue === "") {
-      alertUser.innerHTML = "Please fill task input";
-    } else {
-      const task = {
-        id: todoTasksList.length,
-        name: taskValue,
-        isDone: false,
-      };
-
-      alertUser.innerHTML = "";
-      todoTasksList.unshift(task);
-      this.display();
-      console.log(taskValue, todoTasksList);
-      inputTask.value = "";
-    }
-  }
-
-  done_undone(x) {
-    const selectedTodoIndex = todoTasksList.findIndex((item) => item.id === x);
-    console.log(item, todoTasksList);
-    // todoTasksList[selectedTodoIndex].isDone == false
-    //   ? (todoTasksList[selectedTodoIndex].isDone = true)
-    //   : (todoTasksList[selectedTodoIndex].isDone = false);
-    // this.display();
-  }
-
-  deleteItem(delme) {
-    const selectedDelIndex = todoTasksList.findIndex(
-      (item) => item.id === delme
-    );
-
-    todoTasksList.splice(selectedDelIndex, 1);
-
-    this.display();
-  }
-
-  display() {
-    this.ulElement = "";
-    todoTasksList.forEach((task_item) => {
-      const li = document.createElement("li");
-      const delBtn = document.createElement("i");
-      li.innerText = task_item.name;
-      li.setAttribute("data-id", task_item.id);
-
-      delBtn.classList.add("fa", "fa-trash-alt");
-      delBtn.setAttribute("data-id", task_item.id);
-
-      li.appendChild(delBtn);
-
-      delBtn.addEventListener("click", function (e) {
-        const deleteId = e.target.getAttribute("data-id");
-        myTodoList.deleteItem(deleteId);
-      });
-      li.addEventListener("click", function (e) {
-        const selectedId = e.target.getAttribute("data-id");
-        myTodoList.done_undone(selectedId);
-      });
-
-      if (task_item.isDone) {
-        li.classList.add("checked");
-      }
-      this.ulElement.appendChild(li);
-    });
-  }
-}
-
-myTodoList = new TodoList(todoTasks);
-
-// addBtn.addEventListener("click", myTodoList.add);
-document
-  .querySelector(".todo-form__add-button")
-  .addEventListener("click", function () {
-    myTodoList.add();
-  });
-
-  /**
-   * 
-   */
-
-  const todoObjectList = [];
-
-  class Todo_Class {
-    constructor(item) {
-      this.ulElement = item;
-    }
-
-    add() {
-      const todoInput = document.querySelector("#myInput").value;
-      if (todoInput == "") {
-        alert("You did not enter any item!");
-      } else {
-        const todoObject = {
-          id: todoObjectList.length,
-          todoText: todoInput,
-          isDone: false,
-        };
-
-        todoObjectList.unshift(todoObject);
-        this.display();
-        document.querySelector("#myInput").value = "";
-      }
-    }
-
-    done_undone(x) {
-      const selectedTodoIndex = todoObjectList.findIndex(
-        (item) => item.id == x
-      );
-      console.log(todoObjectList[selectedTodoIndex].isDone);
-      todoObjectList[selectedTodoIndex].isDone == false
-        ? (todoObjectList[selectedTodoIndex].isDone = true)
-        : (todoObjectList[selectedTodoIndex].isDone = false);
-      this.display();
-    }
-
-    deleteElement(z) {
-      const selectedDelIndex = todoObjectList.findIndex((item) => item.id == z);
-
-      todoObjectList.splice(selectedDelIndex, 1);
-
-      this.display();
-    }
-
-    display() {
-      this.ulElement.innerHTML = "";
-
-      todoObjectList.forEach((object_item) => {
-        const liElement = document.createElement("li");
-        const delBtn = document.createElement("i");
-
-        liElement.innerText = object_item.todoText;
-        liElement.setAttribute("data-id", object_item.id);
-
-        delBtn.setAttribute("data-id", object_item.id);
-        delBtn.classList.add("far", "fa-trash-alt");
-
-        liElement.appendChild(delBtn);
-
-        delBtn.addEventListener("click", function (e) {
-          const deleteId = e.target.getAttribute("data-id");
-          myTodoList.deleteElement(deleteId);
-        });
-
-        liElement.addEventListener("click", function (e) {
-          const selectedId = e.target.getAttribute("data-id");
-          myTodoList.done_undone(selectedId);
-        });
-
-        if (object_item.isDone) {
-          liElement.classList.add("checked");
-        }
-
-        this.ulElement.appendChild(liElement);
-      });
-    }
-  }
-
-  ////-----MAIN PROGRAM------------
-  const listSection = document.querySelector("#myUL");
-
-  myTodoList = new Todo_Class(listSection);
-
-  document.querySelector(".addBtn").addEventListener("click", function () {
-    myTodoList.add();
-  });
-
-  document.querySelector("#myInput").addEventListener("keydown", function (e) {
-    if (e.keyCode == 13) {
-      myTodoList.add();
-    }
-  });
