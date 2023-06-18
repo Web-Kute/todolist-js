@@ -1,5 +1,4 @@
-import { Todolist } from "./Todolist";
-// import { Todolist } from "./Todolist.js";
+import { Todolist } from "./Todolist.js";
 document.addEventListener("DOMContentLoaded", function () {
   "use-strict";
 
